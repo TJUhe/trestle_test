@@ -1,0 +1,15 @@
+[
+  {
+    "source": "D:\\code\\test\\zhongjian8demo\\scripts\\trestle_three_view_drawing.py",
+    "title": "\u5de5\u4e1a\u76ae\u5e26\u673a\u6808\u6865\u53c2\u6570\u5316\u4e09\u89c6\u56fe",
+    "entities": 1284,
+    "outputs": {
+      "dxf": "D:\\code\\test\\zhongjian8demo\\zj8_trestle_20260521_user_params\\trestle_three_view.dxf",
+      "svg": "D:\\code\\test\\zhongjian8demo\\zj8_trestle_20260521_user_params\\trestle_three_view.svg",
+      "html": "D:\\code\\test\\zhongjian8demo\\zj8_trestle_20260521_user_params\\trestle_three_view.html",
+      "json": "D:\\code\\test\\zhongjian8demo\\zj8_trestle_20260521_user_params\\trestle_three_view.json",
+      "dwg": "D:\\code\\test\\zhongjian8demo\\zj8_trestle_20260521_user_params\\trestle_three_view.dwg"
+    },
+    "dwg_status": "converted with ODA File Converter"
+  }
+]

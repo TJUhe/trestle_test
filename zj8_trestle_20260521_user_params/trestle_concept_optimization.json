@@ -1,0 +1,77 @@
+{
+  "note": "Concept-only ranking; not a structural calculation.",
+  "best": {
+    "platform_segment_limit": 3500.0,
+    "column_segment_limit": 5000.0,
+    "truss_depth": 1500.0,
+    "member_count": 677,
+    "total_member_length": 2555196.424,
+    "concept_score": 2725.196
+  },
+  "candidates": [
+    {
+      "platform_segment_limit": 3500.0,
+      "column_segment_limit": 5000.0,
+      "truss_depth": 1500.0,
+      "member_count": 677,
+      "total_member_length": 2555196.424,
+      "concept_score": 2725.196
+    },
+    {
+      "platform_segment_limit": 3500.0,
+      "column_segment_limit": 4000.0,
+      "truss_depth": 1500.0,
+      "member_count": 699,
+      "total_member_length": 2555196.424,
+      "concept_score": 2730.696
+    },
+    {
+      "platform_segment_limit": 3000.0,
+      "column_segment_limit": 5000.0,
+      "truss_depth": 1500.0,
+      "member_count": 693,
+      "total_member_length": 2575087.29,
+      "concept_score": 2749.087
+    },
+    {
+      "platform_segment_limit": 3000.0,
+      "column_segment_limit": 4000.0,
+      "truss_depth": 1500.0,
+      "member_count": 715,
+      "total_member_length": 2575087.29,
+      "concept_score": 2754.587
+    },
+    {
+      "platform_segment_limit": 3500.0,
+      "column_segment_limit": 5000.0,
+      "truss_depth": 1800.0,
+      "member_count": 677,
+      "total_member_length": 2587108.169,
+      "concept_score": 2757.258
+    },
+    {
+      "platform_segment_limit": 3500.0,
+      "column_segment_limit": 4000.0,
+      "truss_depth": 1800.0,
+      "member_count": 699,
+      "total_member_length": 2587108.169,
+      "concept_score": 2762.758
+    },
+    {
+      "platform_segment_limit": 3000.0,
+      "column_segment_limit": 5000.0,
+      "truss_depth": 1800.0,
+      "member_count": 693,
+      "total_member_length": 2606999.034,
+      "concept_score": 2781.149
+    },
+    {
+      "platform_segment_limit": 3000.0,
+      "column_segment_limit": 4000.0,
+      "truss_depth": 1800.0,
+      "member_count": 715,
+      "total_member_length": 2606999.034,
+      "concept_score": 2786.649
+    }
+  ]
+}

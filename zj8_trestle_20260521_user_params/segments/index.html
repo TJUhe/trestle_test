@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>分段拼接输出</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f5f8;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #607086;
+      --line: #d7dee8;
+      --blue: #1f6fd1;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      padding: 22px 28px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: 0;
+    }
+    p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    main {
+      width: min(980px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+      vertical-align: top;
+    }
+    th {
+      color: var(--muted);
+      background: #f8fafc;
+      font-weight: 600;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .links {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+    }
+    .back {
+      display: inline-block;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 720px) {
+      header {
+        padding: 18px 16px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      table, thead, tbody, tr, th, td {
+        display: block;
+      }
+      thead {
+        display: none;
+      }
+      tr {
+        border-bottom: 1px solid var(--line);
+      }
+      td {
+        border-bottom: 0;
+        padding: 8px 12px;
+      }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--muted);
+        font-size: 12px;
+        margin-bottom: 4px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>分段拼接输出</h1>
+    <p>每个拼接段包含独立三维基线 DXF 和成员基线 CSV，里程单位为 mm。</p>
+  </header>
+  <main>
+    <a class="back" href="../index.html">返回交付包首页</a>
+    <table aria-label="分段文件列表">
+      <thead>
+        <tr><th>分段</th><th>里程范围</th><th>构件数</th><th>文件</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td data-label="分段">P1</td>
+          <td data-label="里程范围">0 - 39000</td>
+          <td data-label="构件数">161</td>
+          <td data-label="文件" class="links">
+            <a href="P1_0_39000_3d_baselines.dxf">DXF</a>
+            <a href="P1_0_39000_member_baselines.csv">CSV</a>
+          </td>
+        </tr>
+        <tr>
+          <td data-label="分段">P2</td>
+          <td data-label="里程范围">39000 - 77520</td>
+          <td data-label="构件数">238</td>
+          <td data-label="文件" class="links">
+            <a href="P2_39000_77520_3d_baselines.dxf">DXF</a>
+            <a href="P2_39000_77520_member_baselines.csv">CSV</a>
+          </td>
+        </tr>
+        <tr>
+          <td data-label="分段">P3</td>
+          <td data-label="里程范围">77520 - 119520</td>
+          <td data-label="构件数">294</td>
+          <td data-label="文件" class="links">
+            <a href="P3_77520_119520_3d_baselines.dxf">DXF</a>
+            <a href="P3_77520_119520_member_baselines.csv">CSV</a>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

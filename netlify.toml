@@ -1,0 +1,25 @@
+[build]
+  command = "npm run build"
+  publish = "zj8_trestle_20260521_user_params"
+
+[build.environment]
+  NODE_VERSION = "24"
+
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+
+[[headers]]
+  for = "/*.step"
+  [headers.values]
+    Content-Type = "model/step"
+
+[[headers]]
+  for = "/*.dxf"
+  [headers.values]
+    Content-Type = "application/dxf"

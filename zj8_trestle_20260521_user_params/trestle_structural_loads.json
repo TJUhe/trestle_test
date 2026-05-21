@@ -1,0 +1,104 @@
+{
+  "assumptions": {
+    "analysis_level": "conceptual_uniform_vertical_load",
+    "area_load_kn_m2": 3.5,
+    "equipment_line_load_kn_m": 2.0,
+    "self_weight_line_load_kn_m": 1.2,
+    "load_factor": 1.0,
+    "elastic_modulus_gpa": 206.0,
+    "effective_inertia_m4": 0.06,
+    "deck_width_m": 5.75,
+    "total_length_m": 119.52
+  },
+  "results": {
+    "area_line_load_kn_m": 20.125,
+    "average_line_load_kn_m": 23.325,
+    "average_area_load_kn_m2": 4.056521739130434,
+    "total_vertical_load_kn": 2787.8039999999996,
+    "average_support_reaction_kn": 253.43672727272724,
+    "controlling_span": {
+      "span": 9,
+      "start_m": 77.52,
+      "end_m": 116.52,
+      "length_m": 39.0,
+      "simple_span_max_deflection_m": 0.05684606269910498
+    },
+    "simple_span_max_moment_kn_m": 4434.665625,
+    "simple_span_max_shear_kn": 454.8375,
+    "simple_span_max_deflection_m": 0.05684606269910498
+  },
+  "support_reactions": [
+    {
+      "support": 1,
+      "station_m": 0.0,
+      "tributary_length_m": 6.0,
+      "reaction_kn": 139.95
+    },
+    {
+      "support": 2,
+      "station_m": 12.0,
+      "tributary_length_m": 12.0,
+      "reaction_kn": 279.9
+    },
+    {
+      "support": 3,
+      "station_m": 24.0,
+      "tributary_length_m": 12.0,
+      "reaction_kn": 279.9
+    },
+    {
+      "support": 4,
+      "station_m": 36.0,
+      "tributary_length_m": 7.5,
+      "reaction_kn": 174.9375
+    },
+    {
+      "support": 5,
+      "station_m": 39.0,
+      "tributary_length_m": 11.760000000000002,
+      "reaction_kn": 274.302
+    },
+    {
+      "support": 6,
+      "station_m": 59.52,
+      "tributary_length_m": 11.760000000000002,
+      "reaction_kn": 274.302
+    },
+    {
+      "support": 7,
+      "station_m": 62.52,
+      "tributary_length_m": 7.4999999999999964,
+      "reaction_kn": 174.93749999999991
+    },
+    {
+      "support": 8,
+      "station_m": 74.52,
+      "tributary_length_m": 7.4999999999999964,
+      "reaction_kn": 174.93749999999991
+    },
+    {
+      "support": 9,
+      "station_m": 77.52,
+      "tributary_length_m": 21.0,
+      "reaction_kn": 489.825
+    },
+    {
+      "support": 10,
+      "station_m": 116.52,
+      "tributary_length_m": 21.0,
+      "reaction_kn": 489.825
+    },
+    {
+      "support": 11,
+      "station_m": 119.52,
+      "tributary_length_m": 1.5,
+      "reaction_kn": 34.9875
+    }
+  ],
+  "limitations": [
+    "Uniform vertical load approximation only.",
+    "Support reactions use tributary lengths.",
+    "Controlling span moment, shear, and deflection use a simply supported beam estimate.",
+    "Wind, seismic, dynamic effects, connection design, second-order effects, and code capacity checks are not included."
+  ]
+}

@@ -1,0 +1,57 @@
+{
+  "support_spans": [
+    0,
+    12000,
+    12000,
+    12000,
+    3000,
+    20520,
+    3000,
+    12000,
+    3000,
+    39000,
+    3000
+  ],
+  "support_width": 5750,
+  "start_elevation": 17000,
+  "slope_deg": 0,
+  "equipment_width": 2150,
+  "y_origin": 0,
+  "left_cantilever": 1125,
+  "right_cantilever": 1625,
+  "start_cantilever_length": 1400,
+  "end_cantilever_length": 0,
+  "platform_segment_limit": 3000,
+  "column_segment_limit": 5000,
+  "fixed_support_span_range": [
+    2000,
+    6000
+  ],
+  "truss_span_range": [
+    13000,
+    40000
+  ],
+  "truss_segment_limit": 2000,
+  "truss_depth": 1800,
+  "platform_scheme": "double-side-cantilever",
+  "brace_scheme": "alternating-x",
+  "truss_scheme": "warren-with-verticals",
+  "segment_spans": [
+    3000,
+    38520,
+    42000
+  ],
+  "support_stations": [
+    0.0,
+    12000.0,
+    24000.0,
+    36000.0,
+    39000.0,
+    59520.0,
+    62520.0,
+    74520.0,
+    77520.0,
+    116520.0,
+    119520.0
+  ]
+}

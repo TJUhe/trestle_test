@@ -1,0 +1,13 @@
+﻿category,role,cad_layer,section,count,total_length
+cantilever_edge_beam,外挑边梁,ZJ8_CANTILEVER_EDGE,HN-120x120,82,241840.0
+column,柱子,ZJ8_COLUMN,HM-240x240,88,374000.0
+deck_cross_beam,横向梁,ZJ8_DECK_CROSS,HN-180x180,41,200900.0
+deck_main_beam,平台主梁,ZJ8_DECK_MAIN,HM-220x220,80,239040.0
+deck_secondary_beam,平台次梁,ZJ8_DECK_SECONDARY,HN-120x120,80,239040.0
+longitudinal_support_brace,固定支架纵向支撑,ZJ8_LONGITUDINAL_BRACE,L90x90,8,138101.412
+platform_brace,平台平面支撑,ZJ8_PLATFORM_BRACE,L90x90,40,259202.408
+transverse_column_brace,横向柱间支撑,ZJ8_TRANSVERSE_BRACE,L90x90,22,394814.197
+truss_diagonal,桁架斜腹杆,ZJ8_TRUSS_DIAGONAL,L90x90,62,163181.018
+truss_lower_chord,桁架下弦,ZJ8_TRUSS_LOWER,HN-180x180,62,119040.0
+truss_upper_chord,桁架上弦,ZJ8_TRUSS_UPPER,HN-180x180,62,119040.0
+truss_vertical,桁架竖腹杆,ZJ8_TRUSS_VERTICAL,L90x90,66,118800.0

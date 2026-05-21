@@ -1,0 +1,11 @@
+node_modules/
+.netlify/
+_brepjs_unpack/
+_brepjsocc_unpack/
+_libredwg_unpack/
+__pycache__/
+*.pyc
+*.tgz
+outputs/
+outputs_tutorial/
+*verified.png

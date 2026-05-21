@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>工业皮带机栈桥 CAD 交付包</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f2f5f8;
+      --panel: #ffffff;
+      --ink: #1f2933;
+      --muted: #607086;
+      --line: #d7dee8;
+      --blue: #1f6fd1;
+      --green: #209b68;
+      --red: #d64531;
+      --purple: #7552cc;
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: Arial, "Microsoft YaHei", sans-serif;
+      color: var(--ink);
+      background: var(--bg);
+    }
+    header {
+      padding: 22px 28px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+    }
+    h1 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+    header p {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+    main {
+      width: min(1120px, calc(100% - 32px));
+      margin: 24px auto 40px;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .card {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 16px;
+      min-height: 124px;
+    }
+    .card strong {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 16px;
+    }
+    .card span {
+      display: block;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .stat {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .stat small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .stat b {
+      font-size: 18px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      font-size: 14px;
+    }
+    th {
+      color: var(--muted);
+      font-weight: 600;
+      background: #f8fafc;
+    }
+    tr:last-child td {
+      border-bottom: 0;
+    }
+    @media (max-width: 820px) {
+      header {
+        padding: 18px 16px;
+      }
+      h1 {
+        font-size: 20px;
+      }
+      .grid,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>工业皮带机栈桥 CAD 交付包</h1>
+    <p>支架总里程 119520 mm，平台宽 5750 mm，起点标高 17000 mm，拼接分段 39000 / 38520 / 42000 mm。</p>
+  </header>
+  <main>
+    <section class="stats" aria-label="项目统计">
+      <div class="stat"><small>构件数</small><b>693</b></div>
+      <div class="stat"><small>拼接段</small><b>3</b></div>
+      <div class="stat"><small>初始倾角</small><b>0°</b></div>
+      <div class="stat"><small>总里程</small><b>119520</b></div>
+    </section>
+    <section class="grid" aria-label="主要文件">
+      <article class="card">
+        <strong>三维实时预览</strong>
+        <span>WebGL 模型，可调整平台倾角、拼接分段、拼接标记，并查看顶部均布荷载驱动的概念级受力和变形预览。</span>
+        <a href="trestle_parametric_3d_preview.html">打开三维预览</a>
+      </article>
+      <article class="card">
+        <strong>二维三视图</strong>
+        <span>浏览器三视图预览，配套 DWG、DXF、SVG 和 JSON 图元数据。</span>
+        <a href="trestle_three_view.html">打开二维图</a>
+      </article>
+      <article class="card">
+        <strong>二维三视图 DWG</strong>
+        <span>由 DXF 经本地 ODA File Converter 转换出的 AutoCAD DWG 文件。</span>
+        <a href="trestle_three_view.dwg">下载 DWG</a>
+      </article>
+      <article class="card">
+        <strong>STEP 模型</strong>
+        <span>三维预览页会按当前平台倾角和拼接分段自动生成最新 STEP。</span>
+        <a href="trestle_parametric_3d_preview.html">打开并下载当前 STEP</a>
+      </article>
+      <article class="card">
+        <strong>三维基线 DXF</strong>
+        <span>含 CAD 图层、分缝标记和杆件线基线，适合 CAD/3D3S 交接检查。</span>
+        <a href="trestle_tutorial_replica.dxf">下载 DXF</a>
+      </article>
+      <article class="card">
+        <strong>成员基线表</strong>
+        <span>每根构件的端点、截面、图层、分段和长度。</span>
+        <a href="trestle_member_baselines.csv">下载 CSV</a>
+      </article>
+      <article class="card">
+        <strong>分段拼接输出</strong>
+        <span>每个拼接段独立的 DXF 和成员 CSV。</span>
+        <a href="segments/">打开分段目录</a>
+      </article>
+    </section>
+    <table aria-label="分段统计">
+      <thead>
+        <tr><th>分段</th><th>里程范围</th><th>构件数</th><th>构件总长 mm</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>P1</td><td>0 - 39000</td><td>161</td><td><a href="segments/P1_0_39000_3d_baselines.dxf">DXF</a> / <a href="segments/P1_0_39000_member_baselines.csv">CSV</a></td></tr>
+        <tr><td>P2</td><td>39000 - 77520</td><td>238</td><td><a href="segments/P2_39000_77520_3d_baselines.dxf">DXF</a> / <a href="segments/P2_39000_77520_member_baselines.csv">CSV</a></td></tr>
+        <tr><td>P3</td><td>77520 - 119520</td><td>294</td><td><a href="segments/P3_77520_119520_3d_baselines.dxf">DXF</a> / <a href="segments/P3_77520_119520_member_baselines.csv">CSV</a></td></tr>
+      </tbody>
+    </table>
+  </main>
+</body>
+</html>

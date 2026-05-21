@@ -1,0 +1,23 @@
+{
+  "name": "zhongjian8demo-netlify",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "build": "npm run typecheck",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@netlify/blobs": "^10.7.8",
+    "@netlify/functions": "^5.2.2",
+    "brepjs": "file:./brepjs-18.20.3.tgz",
+    "brepjs-opencascade": "file:./brepjs-opencascade-0.15.6.tgz"
+  },
+  "devDependencies": {
+    "@types/node": "^25.9.1",
+    "esbuild": "^0.28.0",
+    "typescript": "^6.0.3"
+  }
+}
