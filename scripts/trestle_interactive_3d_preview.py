@@ -275,6 +275,44 @@ def main() -> int:
       font-size: 12px;
       pointer-events: none;
     }}
+    .contour-legend {{
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      width: 210px;
+      padding: 9px 10px;
+      border: 1px solid rgba(111, 125, 143, 0.28);
+      border-radius: 7px;
+      background: rgba(255, 255, 255, 0.72);
+      color: var(--ink);
+      font-size: 12px;
+      pointer-events: none;
+      backdrop-filter: blur(6px);
+      box-shadow: 0 8px 22px rgba(26, 43, 63, 0.10);
+    }}
+    .contour-title {{
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 7px;
+      font-weight: 700;
+    }}
+    .contour-title small {{
+      color: var(--muted);
+      font-weight: 600;
+    }}
+    .contour-bar {{
+      height: 12px;
+      border-radius: 3px;
+      border: 1px solid rgba(27, 41, 56, 0.22);
+      background: linear-gradient(90deg, #1722ff 0%, #00a3ff 20%, #00c853 43%, #ffe600 63%, #ff7a00 81%, #d7191c 100%);
+    }}
+    .contour-scale {{
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+      color: var(--muted);
+    }}
     table {{
       width: 100%;
       border-collapse: collapse;
@@ -356,6 +394,11 @@ def main() -> int:
         right: 10px;
         bottom: 10px;
       }}
+      .contour-legend {{
+        right: 10px;
+        bottom: 54px;
+        width: 180px;
+      }}
     }}
   </style>
 </head>
@@ -419,6 +462,7 @@ def main() -> int:
         </div>
         <label class="toggle"><span>显示顶部荷载箭头</span><input id="showLoads" type="checkbox" checked autocomplete="off"></label>
         <label class="toggle"><span>荷载驱动变形</span><input id="showDeformation" type="checkbox" checked autocomplete="off"></label>
+        <label class="toggle"><span>显示挠度云图</span><input id="showContour" type="checkbox" checked autocomplete="off"></label>
         <div class="analysis-grid">
           <div class="analysis-stat"><small>平均线荷载</small><b id="avgLineLoad">-</b></div>
           <div class="analysis-stat"><small>总竖向荷载</small><b id="totalVerticalLoad">-</b></div>
@@ -435,7 +479,7 @@ def main() -> int:
             <tbody id="supportRows"></tbody>
           </table>
         </div>
-        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。模型标注中绿色为支撑点 0 mm，橙色为各跨跨中计算挠度；几何显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
+        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。模型标注中绿色为支撑点 0 mm，橙色为各跨跨中计算挠度；挠度云图采用 Fluent 风格色标，几何显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
       </section>
       <div class="legend">
         <span><i class="swatch" style="background:var(--main)"></i>主梁/横梁</span>
@@ -458,6 +502,11 @@ def main() -> int:
     </aside>
     <section id="stage">
       <div class="hud">鼠标左键旋转，右键平移，滚轮缩放</div>
+      <div id="contourLegend" class="contour-legend">
+        <div class="contour-title"><span>挠度云图</span><small>mm</small></div>
+        <div class="contour-bar"></div>
+        <div class="contour-scale"><span id="contourMin">0</span><span id="contourMax">-</span></div>
+      </div>
     </section>
   </main>
   <script type="importmap">
@@ -482,6 +531,10 @@ def main() -> int:
     const deformScaleInput = document.getElementById('deformScale');
     const showLoadsInput = document.getElementById('showLoads');
     const showDeformationInput = document.getElementById('showDeformation');
+    const showContourInput = document.getElementById('showContour');
+    const contourLegend = document.getElementById('contourLegend');
+    const contourMin = document.getElementById('contourMin');
+    const contourMax = document.getElementById('contourMax');
     const syncState = document.getElementById('syncState');
     const total = data.params.support_stations[data.params.support_stations.length - 1];
     const startElevation = data.params.start_elevation;
@@ -559,6 +612,15 @@ def main() -> int:
       plate: new THREE.MeshStandardMaterial({{ color: colors.plate, transparent: true, opacity: 0.42, roughness: 0.5, side: THREE.DoubleSide }}),
       load: new THREE.MeshStandardMaterial({{ color: colors.load, roughness: 0.5, metalness: 0.05 }}),
     }};
+    const contourStops = [
+      [0.00, new THREE.Color(0x1722ff)],
+      [0.20, new THREE.Color(0x00a3ff)],
+      [0.43, new THREE.Color(0x00c853)],
+      [0.63, new THREE.Color(0xffe600)],
+      [0.81, new THREE.Color(0xff7a00)],
+      [1.00, new THREE.Color(0xd7191c)],
+    ];
+    const contourMaterials = new Map();
 
     const sectionSize = {{
       'HM-220x220': [0.22, 0.22],
@@ -708,6 +770,51 @@ def main() -> int:
       return Math.max(actualShown, displayBoostAtStation(xMm, loadSummary));
     }}
 
+    function fluentContourColor(value) {{
+      const t = Math.min(Math.max(value, 0), 1);
+      for (let index = 0; index < contourStops.length - 1; index += 1) {{
+        const [aT, aColor] = contourStops[index];
+        const [bT, bColor] = contourStops[index + 1];
+        if (t >= aT && t <= bT) {{
+          const local = (t - aT) / Math.max(bT - aT, 1e-6);
+          return aColor.clone().lerp(bColor, local);
+        }}
+      }}
+      return contourStops[contourStops.length - 1][1].clone();
+    }}
+
+    function contourMaterialFor(deflectionMm, loadSummary) {{
+      const maxDeflectionMm = Math.max(loadSummary.maxDeflection * 1000, 1e-6);
+      const t = Math.min(Math.max(deflectionMm / maxDeflectionMm, 0), 1);
+      const bucket = Math.round(t * 96);
+      if (!contourMaterials.has(bucket)) {{
+        contourMaterials.set(bucket, new THREE.MeshStandardMaterial({{
+          color: fluentContourColor(bucket / 96),
+          roughness: 0.5,
+          metalness: 0.12,
+        }}));
+      }}
+      return contourMaterials.get(bucket);
+    }}
+
+    function isContourCategory(row) {{
+      return [
+        'deck_main_beam',
+        'deck_cross_beam',
+        'deck_secondary_beam',
+        'cantilever_edge_beam',
+        'platform_brace',
+        'truss_upper_chord',
+        'truss_lower_chord',
+        'truss_vertical',
+        'truss_diagonal',
+      ].includes(row.category);
+    }}
+
+    function shouldContourMember(row) {{
+      return showContourInput.checked && isContourCategory(row);
+    }}
+
     function makeTextSprite(text, options = {{}}) {{
       const canvas = document.createElement('canvas');
       const context = canvas.getContext('2d');
@@ -801,6 +908,12 @@ def main() -> int:
           {{ color: '#8a3b04', background: 'rgba(255, 244, 226, 0.58)', border: 'rgba(180, 83, 9, 0.18)', colorValue: 0xb45309, fontSize: 28, offset: 1.55, opacity: 0.78 }}
         ));
       }}
+    }}
+
+    function updateContourLegend(loadSummary) {{
+      contourMin.textContent = '0.000';
+      contourMax.textContent = `${{formatNumber(loadSummary.maxDeflection * 1000, 3)}}`;
+      contourLegend.style.display = showContourInput.checked ? 'block' : 'none';
     }}
 
     function makeLoadArrow(station, y, deckZ, maxArrowHeight) {{
@@ -901,6 +1014,10 @@ def main() -> int:
       return ['deck_main_beam', 'deck_secondary_beam', 'cantilever_edge_beam', 'truss_upper_chord', 'truss_lower_chord'].includes(row.category);
     }}
 
+    function shouldWarpMember(row) {{
+      return row.category !== 'column';
+    }}
+
     function interpolatedPoint(row, t, loadSummary) {{
       const start = projectedPoint(row, 'start', loadSummary);
       const end = projectedPoint(row, 'end', loadSummary);
@@ -912,11 +1029,11 @@ def main() -> int:
       return new THREE.Vector3(x * worldScale, y * worldScale, z * worldScale);
     }}
 
-    function makeStraightMember(row, loadSummary, start = toWorld(row, 'start', loadSummary), end = toWorld(row, 'end', loadSummary)) {{
+    function makeStraightMember(row, loadSummary, start = toWorld(row, 'start', loadSummary), end = toWorld(row, 'end', loadSummary), material = materialFor(row.category)) {{
       const direction = new THREE.Vector3().subVectors(end, start);
       const length = direction.length();
       const [w, h] = sectionSize[row.section] || [0.12, 0.12];
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, length), materialFor(row.category));
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, length), material);
       const center = new THREE.Vector3().addVectors(start, end).multiplyScalar(0.5);
       mesh.position.copy(center);
       mesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 0, 1), direction.normalize());
@@ -928,8 +1045,11 @@ def main() -> int:
       const start = toWorld(row, 'start', loadSummary);
       const end = toWorld(row, 'end', loadSummary);
       const spanLength = Math.abs(Number(row.end_x) - Number(row.start_x));
-      if (!showDeformationInput.checked || !shouldCurveMember(row)) {{
-        return makeStraightMember(row, loadSummary, start, end);
+      const usesSegmentedWarp = (showDeformationInput.checked && shouldCurveMember(row)) || (shouldContourMember(row) && spanLength > 1e-6);
+      if (!usesSegmentedWarp) {{
+        const midX = (Number(row.start_x) + Number(row.end_x)) / 2;
+        const material = shouldContourMember(row) ? contourMaterialFor(actualDeflectionAtStation(midX, loadSummary), loadSummary) : materialFor(row.category);
+        return makeStraightMember(row, loadSummary, start, end, material);
       }}
       const startX = Math.min(Number(row.start_x), Number(row.end_x));
       const endX = Math.max(Number(row.start_x), Number(row.end_x));
@@ -955,7 +1075,10 @@ def main() -> int:
       for (let index = 0; index < points.length - 1; index += 1) {{
         const a = interpolatedPoint(row, points[index], loadSummary);
         const b = interpolatedPoint(row, points[index + 1], loadSummary);
-        group.add(makeStraightMember(row, loadSummary, a, b));
+        const midT = (points[index] + points[index + 1]) / 2;
+        const midX = Number(row.start_x) + (Number(row.end_x) - Number(row.start_x)) * midT;
+        const material = shouldContourMember(row) ? contourMaterialFor(actualDeflectionAtStation(midX, loadSummary), loadSummary) : materialFor(row.category);
+        group.add(makeStraightMember(row, loadSummary, a, b, material));
       }}
       group.userData = {{ id: row.id, category: row.category, curved: true }};
       return group;
@@ -1027,6 +1150,7 @@ def main() -> int:
       plateGroup.visible = showPlatesInput.checked;
       rebuildLoadArrows(loadSummary);
       rebuildDeformationLabels(loadSummary);
+      updateContourLegend(loadSummary);
       updateLoadPanel(loadSummary);
       document.getElementById('slopeValue').textContent = `${{Number(slopeInput.value).toFixed(1)}}°`;
       document.getElementById('memberCount').textContent = data.members.length;
@@ -1137,6 +1261,7 @@ def main() -> int:
     showPlatesInput.addEventListener('change', rebuild);
     showLoadsInput.addEventListener('change', rebuild);
     showDeformationInput.addEventListener('change', rebuild);
+    showContourInput.addEventListener('change', rebuild);
     for (const input of [areaLoadInput, equipmentLoadInput, selfWeightLoadInput, loadFactorInput, elasticModulusInput, effectiveInertiaInput, deformScaleInput]) {{
       input.addEventListener('input', rebuild);
     }}
