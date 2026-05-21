@@ -435,7 +435,7 @@ def main() -> int:
             <tbody id="supportRows"></tbody>
           </table>
         </div>
-        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力和挠度按各跨简支梁估算。为了避免“只有少数跨在动”的假象，显示时还叠加了一条整桥连续的可视化挠度包络，所以短跨也会轻微跟随。变形显示经过放大，用于方案阶段快速判断，未包含连续梁效应、桁架真实刚度、风、地震、动力、连接节点和规范承载力验算。</div>
+        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。几何显示采用整条栈桥连续下挠曲线，模拟石头平铺后上部结构整体受压变形；显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
       </section>
       <div class="legend">
         <span><i class="swatch" style="background:var(--main)"></i>主梁/横梁</span>
@@ -666,21 +666,14 @@ def main() -> int:
       return loadSummary.lineLoad * localX * (span.span ** 3 - 2 * span.span * localX ** 2 + localX ** 3) / denominator;
     }}
 
-    function envelopeDeflectionAt(xMm, loadSummary) {{
+    function deflectionAtStation(xMm, loadSummary) {{
       if (!showDeformationInput.checked || numericInput(deformScaleInput, 0) <= 0) return 0;
       const lengthMm = Math.max(total, 1);
       const t = Math.max(0, Math.min(1, xMm / lengthMm));
-      const shape = Math.sin(Math.PI * t);
-      return loadSummary.maxDeflection * 0.15 * shape * shape;
-    }}
-
-    function deflectionAtStation(xMm, loadSummary) {{
-      if (!showDeformationInput.checked || numericInput(deformScaleInput, 0) <= 0) return 0;
-      const stationM = xMm / 1000;
-      const span = loadSummary.spans.find(item => stationM >= item.start - 1e-9 && stationM <= item.end + 1e-9);
-      const local = spanDeflectionAt(span, stationM, loadSummary);
-      const envelope = envelopeDeflectionAt(xMm, loadSummary);
-      return (local + envelope) * 1000 * numericInput(deformScaleInput, 0);
+      const globalShape = Math.sin(Math.PI * t);
+      const longWave = globalShape * globalShape;
+      const gentleTilt = 0.18 * Math.sin(2 * Math.PI * t);
+      return loadSummary.maxDeflection * (0.55 * longWave + 0.08 * gentleTilt) * 1000 * numericInput(deformScaleInput, 0);
     }}
 
     function makeLoadArrow(station, y, deckZ, maxArrowHeight) {{
@@ -721,9 +714,8 @@ def main() -> int:
       document.getElementById('maxSpanShear').textContent = `${{formatNumber(loadSummary.maxShear)}} kN`;
       document.getElementById('avgAreaLoad').textContent = `${{formatNumber(loadSummary.avgAreaLoad)}} kN/m²`;
       document.getElementById('maxDeflection').textContent = `${{formatNumber(loadSummary.maxDeflection * 1000, 1)}} mm`;
-      const visualDeflection = showDeformationInput.checked ? loadSummary.maxDeflection * 1000 * numericInput(deformScaleInput, 0) : 0;
-      const visualEnvelopeDeflection = showDeformationInput.checked ? loadSummary.maxDeflection * 0.15 * 1000 * numericInput(deformScaleInput, 0) : 0;
-      document.getElementById('shownDeflection').textContent = `${{formatNumber(visualDeflection + visualEnvelopeDeflection, 0)}} mm`;
+      const visualDeflection = showDeformationInput.checked ? loadSummary.maxDeflection * 0.55 * 1000 * numericInput(deformScaleInput, 0) : 0;
+      document.getElementById('shownDeflection').textContent = `${{formatNumber(visualDeflection, 0)}} mm`;
       document.getElementById('deformScaleValue').textContent = `${{Math.round(numericInput(deformScaleInput, 0))}}×`;
       document.getElementById('supportRows').innerHTML = loadSummary.reactions
         .map(row => `<tr><td>Z${{row.index}}</td><td>${{formatNumber(row.station, 2)}}</td><td>${{formatNumber(row.reaction)}}</td></tr>`)
