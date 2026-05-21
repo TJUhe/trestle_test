@@ -360,8 +360,8 @@
             <input id="effectiveInertia" type="number" min="0.00001" step="0.001" value="0.06" autocomplete="off">
           </div>
           <div class="field">
-            <label for="deformScale"><span>变形放大倍数</span><b id="deformScaleValue">40×</b></label>
-            <input id="deformScale" type="range" min="0" max="200" step="5" value="40" autocomplete="off">
+            <label for="deformScale"><span>变形放大倍数</span><b id="deformScaleValue">60×</b></label>
+            <input id="deformScale" type="range" min="0" max="200" step="5" value="60" autocomplete="off">
           </div>
         </div>
         <label class="toggle"><span>显示顶部荷载箭头</span><input id="showLoads" type="checkbox" checked autocomplete="off"></label>
@@ -382,7 +382,7 @@
             <tbody id="supportRows"></tbody>
           </table>
         </div>
-        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。模型标注中绿色为支撑点 0 mm，橙色为各跨跨中计算/显示下挠；显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
+        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。模型标注中绿色为支撑点 0 mm，橙色为各跨跨中计算挠度；几何显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
       </section>
       <div class="legend">
         <span><i class="swatch" style="background:var(--main)"></i>主梁/横梁</span>
@@ -645,7 +645,7 @@
       const spanShape = Math.sin(Math.PI * localT);
       if (spanShape <= 1e-9) return 0;
       const maxShown = loadSummary.maxDeflection * 1000 * numericInput(deformScaleInput, 0);
-      return maxShown * 0.06 * Math.sqrt(Math.min(1, span.span / controllingSpan)) * spanShape;
+      return maxShown * 0.09 * Math.sqrt(Math.min(1, span.span / controllingSpan)) * spanShape;
     }
 
     function deflectionAtStation(xMm, loadSummary) {
@@ -668,8 +668,8 @@
       canvas.height = Math.ceil(fontSize * ratio + paddingY * 2);
       context.font = `700 ${fontSize * ratio}px "Microsoft YaHei", "Segoe UI", sans-serif`;
       context.textBaseline = 'middle';
-      context.fillStyle = options.background || 'rgba(255, 255, 255, 0.88)';
-      context.strokeStyle = options.border || 'rgba(41, 53, 65, 0.25)';
+      context.fillStyle = options.background || 'rgba(255, 255, 255, 0.62)';
+      context.strokeStyle = options.border || 'rgba(41, 53, 65, 0.18)';
       context.lineWidth = 2 * ratio;
       const radius = 8 * ratio;
       const w = canvas.width;
@@ -691,7 +691,7 @@
       context.fillText(text, paddingX, h / 2);
       const texture = new THREE.CanvasTexture(canvas);
       texture.colorSpace = THREE.SRGBColorSpace;
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthTest: false });
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, opacity: options.opacity || 0.82, depthTest: false });
       const sprite = new THREE.Sprite(material);
       const width = (canvas.width / ratio) * 0.018;
       const height = (canvas.height / ratio) * 0.018;
@@ -707,11 +707,11 @@
       const z = zMm * worldScale;
       const verticalOffset = options.offset || 1.9;
       const color = options.colorValue || 0x1f8f5f;
-      const marker = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({ color, roughness: 0.45 }));
+      const marker = new THREE.Mesh(new THREE.SphereGeometry(0.16, 16, 12), new THREE.MeshStandardMaterial({ color, transparent: true, opacity: options.markerOpacity || 0.62, roughness: 0.45 }));
       marker.position.set(x, y, z);
       const line = new THREE.Line(
         new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, y, z), new THREE.Vector3(x, y, z + verticalOffset)]),
-        new THREE.LineBasicMaterial({ color })
+        new THREE.LineBasicMaterial({ color, transparent: true, opacity: options.lineOpacity || 0.46 })
       );
       const sprite = makeTextSprite(text, options);
       sprite.position.set(x, y, z + verticalOffset + 0.45);
@@ -733,20 +733,19 @@
           labelY,
           zMm,
           `Z${reaction.index} 0 mm`,
-          { color: '#0f6b46', background: 'rgba(232, 247, 239, 0.92)', border: 'rgba(15, 107, 70, 0.34)', colorValue: 0x15804f, fontSize: 30, offset: 1.35 }
+          { color: '#0f6b46', background: 'rgba(232, 247, 239, 0.56)', border: 'rgba(15, 107, 70, 0.18)', colorValue: 0x15804f, fontSize: 30, offset: 1.35, opacity: 0.78 }
         ));
       }
       for (const span of loadSummary.spans) {
         const xMm = (span.start + span.span / 2) * 1000;
         const actualMm = actualDeflectionAtStation(xMm, loadSummary);
-        const shownMm = deflectionAtStation(xMm, loadSummary);
-        const zMm = deckZAt(xMm) - shownMm + 1850;
+        const zMm = deckZAt(xMm) - deflectionAtStation(xMm, loadSummary) + 1850;
         labelGroup.add(makeLabelAnchor(
           xMm,
           -labelY,
           zMm,
-          `Z${span.index + 1}-Z${span.index + 2} 算${formatNumber(actualMm, 3)} / 显${formatNumber(shownMm, 0)} mm`,
-          { color: '#8a3b04', background: 'rgba(255, 244, 226, 0.94)', border: 'rgba(180, 83, 9, 0.36)', colorValue: 0xb45309, fontSize: 28, offset: 1.55 }
+          `Z${span.index + 1}-Z${span.index + 2} ${formatNumber(actualMm, 3)} mm`,
+          { color: '#8a3b04', background: 'rgba(255, 244, 226, 0.58)', border: 'rgba(180, 83, 9, 0.18)', colorValue: 0xb45309, fontSize: 28, offset: 1.55, opacity: 0.78 }
         ));
       }
     }
