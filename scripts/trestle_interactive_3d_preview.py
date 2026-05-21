@@ -435,7 +435,7 @@ def main() -> int:
             <tbody id="supportRows"></tbody>
           </table>
         </div>
-        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。几何显示采用整条栈桥连续下挠曲线，模拟石头平铺后上部结构整体受压变形；显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
+        <div class="analysis-note">采用顶部均布荷载折算为沿栈桥方向的线荷载，并按相邻跨一半分摊到支座；控制跨弯矩/剪力按简支跨估算。模型标注中绿色为支撑点 0 mm，橙色为各跨跨中计算/显示下挠；显示经过放大，用于方案阶段快速判断，未包含真实连续梁刚度、桁架节点、基础沉降、风、地震、动力和规范承载力验算。</div>
       </section>
       <div class="legend">
         <span><i class="swatch" style="background:var(--main)"></i>主梁/横梁</span>
@@ -546,6 +546,8 @@ def main() -> int:
     scene.add(plateGroup);
     const loadGroup = new THREE.Group();
     scene.add(loadGroup);
+    const labelGroup = new THREE.Group();
+    scene.add(labelGroup);
 
     const materials = {{
       main: new THREE.MeshStandardMaterial({{ color: colors.main, roughness: 0.58, metalness: 0.16 }}),
@@ -647,6 +649,7 @@ def main() -> int:
         totalLoad,
         elasticModulusGpa,
         effectiveInertia,
+        stations,
         avgAreaLoad: deckWidth > 0 ? lineLoad / deckWidth : 0,
         avgSupportReaction: reactions.length ? totalLoad / reactions.length : 0,
         spans,
@@ -666,14 +669,139 @@ def main() -> int:
       return loadSummary.lineLoad * localX * (span.span ** 3 - 2 * span.span * localX ** 2 + localX ** 3) / denominator;
     }}
 
+    function supportSpanAt(stationM, loadSummary) {{
+      const stations = loadSummary?.stations || [];
+      if (stations.length < 2) return null;
+      for (let index = 0; index < stations.length - 1; index += 1) {{
+        const start = stations[index];
+        const end = stations[index + 1];
+        if (stationM >= start - 1e-9 && stationM <= end + 1e-9) {{
+          return {{ index, start, end, span: end - start }};
+        }}
+      }}
+      return null;
+    }}
+
+    function actualDeflectionAtStation(xMm, loadSummary) {{
+      const stationM = xMm / 1000;
+      const span = supportSpanAt(stationM, loadSummary);
+      if (!span) return 0;
+      return spanDeflectionAt(span, stationM, loadSummary) * 1000;
+    }}
+
+    function displayBoostAtStation(xMm, loadSummary) {{
+      const stationM = xMm / 1000;
+      const span = supportSpanAt(stationM, loadSummary);
+      if (!span || span.span <= 1e-6) return 0;
+      const controllingSpan = Math.max(loadSummary?.controllingSpan?.span || span.span, 1e-6);
+      const localT = Math.min(Math.max((stationM - span.start) / span.span, 0), 1);
+      const spanShape = Math.sin(Math.PI * localT);
+      if (spanShape <= 1e-9) return 0;
+      const maxShown = loadSummary.maxDeflection * 1000 * numericInput(deformScaleInput, 0);
+      return maxShown * 0.06 * Math.sqrt(Math.min(1, span.span / controllingSpan)) * spanShape;
+    }}
+
     function deflectionAtStation(xMm, loadSummary) {{
       if (!showDeformationInput.checked || numericInput(deformScaleInput, 0) <= 0) return 0;
-      const lengthMm = Math.max(total, 1);
-      const t = Math.max(0, Math.min(1, xMm / lengthMm));
-      const globalShape = Math.sin(Math.PI * t);
-      const longWave = globalShape * globalShape;
-      const gentleTilt = 0.18 * Math.sin(2 * Math.PI * t);
-      return loadSummary.maxDeflection * (0.55 * longWave + 0.08 * gentleTilt) * 1000 * numericInput(deformScaleInput, 0);
+      const actualShown = actualDeflectionAtStation(xMm, loadSummary) * numericInput(deformScaleInput, 0);
+      if (actualShown <= 0) return 0;
+      return Math.max(actualShown, displayBoostAtStation(xMm, loadSummary));
+    }}
+
+    function makeTextSprite(text, options = {{}}) {{
+      const canvas = document.createElement('canvas');
+      const context = canvas.getContext('2d');
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      const fontSize = options.fontSize || 34;
+      context.font = `700 ${{fontSize * ratio}}px "Microsoft YaHei", "Segoe UI", sans-serif`;
+      const paddingX = 18 * ratio;
+      const paddingY = 10 * ratio;
+      const metrics = context.measureText(text);
+      canvas.width = Math.ceil(metrics.width + paddingX * 2);
+      canvas.height = Math.ceil(fontSize * ratio + paddingY * 2);
+      context.font = `700 ${{fontSize * ratio}}px "Microsoft YaHei", "Segoe UI", sans-serif`;
+      context.textBaseline = 'middle';
+      context.fillStyle = options.background || 'rgba(255, 255, 255, 0.88)';
+      context.strokeStyle = options.border || 'rgba(41, 53, 65, 0.25)';
+      context.lineWidth = 2 * ratio;
+      const radius = 8 * ratio;
+      const w = canvas.width;
+      const h = canvas.height;
+      context.beginPath();
+      context.moveTo(radius, 0);
+      context.lineTo(w - radius, 0);
+      context.quadraticCurveTo(w, 0, w, radius);
+      context.lineTo(w, h - radius);
+      context.quadraticCurveTo(w, h, w - radius, h);
+      context.lineTo(radius, h);
+      context.quadraticCurveTo(0, h, 0, h - radius);
+      context.lineTo(0, radius);
+      context.quadraticCurveTo(0, 0, radius, 0);
+      context.closePath();
+      context.fill();
+      context.stroke();
+      context.fillStyle = options.color || '#1f2933';
+      context.fillText(text, paddingX, h / 2);
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      const material = new THREE.SpriteMaterial({{ map: texture, transparent: true, depthTest: false }});
+      const sprite = new THREE.Sprite(material);
+      const width = (canvas.width / ratio) * 0.018;
+      const height = (canvas.height / ratio) * 0.018;
+      sprite.scale.set(width, height, 1);
+      sprite.userData = {{ texture }};
+      return sprite;
+    }}
+
+    function makeLabelAnchor(xMm, yMm, zMm, text, options = {{}}) {{
+      const group = new THREE.Group();
+      const x = xMm * worldScale;
+      const y = yMm * worldScale;
+      const z = zMm * worldScale;
+      const verticalOffset = options.offset || 1.9;
+      const color = options.colorValue || 0x1f8f5f;
+      const marker = new THREE.Mesh(new THREE.SphereGeometry(0.18, 16, 12), new THREE.MeshStandardMaterial({{ color, roughness: 0.45 }}));
+      marker.position.set(x, y, z);
+      const line = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(x, y, z), new THREE.Vector3(x, y, z + verticalOffset)]),
+        new THREE.LineBasicMaterial({{ color }})
+      );
+      const sprite = makeTextSprite(text, options);
+      sprite.position.set(x, y, z + verticalOffset + 0.45);
+      group.add(marker);
+      group.add(line);
+      group.add(sprite);
+      return group;
+    }}
+
+    function rebuildDeformationLabels(loadSummary) {{
+      clearGroup(labelGroup, true);
+      if (!showDeformationInput.checked) return;
+      const labelY = -data.params.support_width * 0.5 - 760;
+      for (const reaction of loadSummary.reactions) {{
+        const xMm = reaction.station * 1000;
+        const zMm = deckZAt(xMm) - deflectionAtStation(xMm, loadSummary) + 1350;
+        labelGroup.add(makeLabelAnchor(
+          xMm,
+          labelY,
+          zMm,
+          `Z${{reaction.index}} 0 mm`,
+          {{ color: '#0f6b46', background: 'rgba(232, 247, 239, 0.92)', border: 'rgba(15, 107, 70, 0.34)', colorValue: 0x15804f, fontSize: 30, offset: 1.35 }}
+        ));
+      }}
+      for (const span of loadSummary.spans) {{
+        const xMm = (span.start + span.span / 2) * 1000;
+        const actualMm = actualDeflectionAtStation(xMm, loadSummary);
+        const shownMm = deflectionAtStation(xMm, loadSummary);
+        const zMm = deckZAt(xMm) - shownMm + 1850;
+        labelGroup.add(makeLabelAnchor(
+          xMm,
+          -labelY,
+          zMm,
+          `Z${{span.index + 1}}-Z${{span.index + 2}} 算${{formatNumber(actualMm, 3)}} / 显${{formatNumber(shownMm, 0)}} mm`,
+          {{ color: '#8a3b04', background: 'rgba(255, 244, 226, 0.94)', border: 'rgba(180, 83, 9, 0.36)', colorValue: 0xb45309, fontSize: 28, offset: 1.55 }}
+        ));
+      }}
     }}
 
     function makeLoadArrow(station, y, deckZ, maxArrowHeight) {{
@@ -714,7 +842,7 @@ def main() -> int:
       document.getElementById('maxSpanShear').textContent = `${{formatNumber(loadSummary.maxShear)}} kN`;
       document.getElementById('avgAreaLoad').textContent = `${{formatNumber(loadSummary.avgAreaLoad)}} kN/m²`;
       document.getElementById('maxDeflection').textContent = `${{formatNumber(loadSummary.maxDeflection * 1000, 1)}} mm`;
-      const visualDeflection = showDeformationInput.checked ? loadSummary.maxDeflection * 0.55 * 1000 * numericInput(deformScaleInput, 0) : 0;
+      const visualDeflection = showDeformationInput.checked ? loadSummary.maxDeflection * 1000 * numericInput(deformScaleInput, 0) : 0;
       document.getElementById('shownDeflection').textContent = `${{formatNumber(visualDeflection, 0)}} mm`;
       document.getElementById('deformScaleValue').textContent = `${{Math.round(numericInput(deformScaleInput, 0))}}×`;
       document.getElementById('supportRows').innerHTML = loadSummary.reactions
@@ -804,22 +932,49 @@ def main() -> int:
       if (!showDeformationInput.checked || !shouldCurveMember(row)) {{
         return makeStraightMember(row, loadSummary, start, end);
       }}
-      const pieces = Math.max(3, Math.min(24, Math.ceil(Math.max(spanLength, 1000) / 1200)));
+      const startX = Math.min(Number(row.start_x), Number(row.end_x));
+      const endX = Math.max(Number(row.start_x), Number(row.end_x));
+      const breakpoints = new Set([0, 1]);
+      const addBreakpointAtX = x => {{
+        if (spanLength <= 1e-6 || x <= startX + 1e-6 || x >= endX - 1e-6) return;
+        const t = (x - Number(row.start_x)) / (Number(row.end_x) - Number(row.start_x));
+        if (t > 1e-6 && t < 1 - 1e-6) breakpoints.add(Math.min(Math.max(t, 0), 1));
+      }};
+      for (const station of loadSummary.stations) {{
+        const x = station * 1000;
+        addBreakpointAtX(x);
+      }}
+      for (const span of loadSummary.spans) {{
+        addBreakpointAtX((span.start + span.span / 2) * 1000);
+      }}
+      const pieces = Math.max(3, Math.min(28, Math.ceil(Math.max(spanLength, 1000) / 1400)));
+      for (let index = 1; index < pieces; index += 1) {{
+        breakpoints.add(index / pieces);
+      }}
+      const points = Array.from(breakpoints).sort((a, b) => a - b);
       const group = new THREE.Group();
-      for (let index = 0; index < pieces; index += 1) {{
-        const a = interpolatedPoint(row, index / pieces, loadSummary);
-        const b = interpolatedPoint(row, (index + 1) / pieces, loadSummary);
+      for (let index = 0; index < points.length - 1; index += 1) {{
+        const a = interpolatedPoint(row, points[index], loadSummary);
+        const b = interpolatedPoint(row, points[index + 1], loadSummary);
         group.add(makeStraightMember(row, loadSummary, a, b));
       }}
       group.userData = {{ id: row.id, category: row.category, curved: true }};
       return group;
     }}
 
-    function clearGroup(group) {{
+    function clearGroup(group, disposeMaterials = false) {{
       while (group.children.length) {{
         const child = group.children.pop();
-        child.traverse?.(node => node.geometry?.dispose());
+        child.traverse?.(node => {{
+          node.geometry?.dispose();
+          if (disposeMaterials) {{
+            node.material?.map?.dispose();
+            node.material?.dispose();
+            node.userData?.texture?.dispose?.();
+          }}
+        }});
         child.geometry?.dispose();
+        if (disposeMaterials) child.material?.dispose();
       }}
     }}
 
@@ -861,6 +1016,7 @@ def main() -> int:
       clearGroup(modelGroup);
       clearGroup(spliceGroup);
       clearGroup(plateGroup);
+      clearGroup(labelGroup, true);
       const loadSummary = structuralLoadSummary();
       for (const row of data.members) modelGroup.add(makeMember(row, loadSummary));
       const ranges = segmentRanges();
@@ -871,6 +1027,7 @@ def main() -> int:
       spliceGroup.visible = showSpliceInput.checked;
       plateGroup.visible = showPlatesInput.checked;
       rebuildLoadArrows(loadSummary);
+      rebuildDeformationLabels(loadSummary);
       updateLoadPanel(loadSummary);
       document.getElementById('slopeValue').textContent = `${{Number(slopeInput.value).toFixed(1)}}°`;
       document.getElementById('memberCount').textContent = data.members.length;
@@ -999,6 +1156,9 @@ def main() -> int:
     function animate() {{
       requestAnimationFrame(animate);
       controls.update();
+      labelGroup.traverse(node => {{
+        if (node.isSprite) node.quaternion.copy(camera.quaternion);
+      }});
       renderer.render(scene, camera);
     }}
     animate();
